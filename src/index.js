@@ -6,7 +6,7 @@ import { ConnectedRouter } from "connected-react-router";
 import store from "./redux";
 import history from "./history";
 import ScreensRoot from "./screens/Root";
-
+import "./index.css";
 ReactDOM.render(
   <Provider store={store}>
     <ConnectedRouter history={history}>
