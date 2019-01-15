@@ -7,10 +7,23 @@ import store from "./redux";
 import history from "./history";
 import ScreensRoot from "./screens/Root";
 import "./index.css";
+import MuiThemeProvider from "@material-ui/core/styles/MuiThemeProvider";
+
+import blue from "@material-ui/core/colors/blue";
+import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
+
+const theme = createMuiTheme({
+  palette: {
+    primary: { main: blue[500] }
+  }
+});
+
 ReactDOM.render(
   <Provider store={store}>
     <ConnectedRouter history={history}>
-      <ScreensRoot />
+      <MuiThemeProvider theme={theme}>
+        <ScreensRoot />
+      </MuiThemeProvider>
     </ConnectedRouter>
   </Provider>,
   document.getElementById("root")

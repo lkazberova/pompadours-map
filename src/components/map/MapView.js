@@ -4,29 +4,37 @@ import config from "./config";
 // import { ReactMapboxGlCluster } from "react-mapbox-gl-cluster";
 import { connect } from "react-redux";
 import { fetchAllUsers, usersGeoJSONSelector } from "../../ducks/users";
-import { ReactMapboxGlSpiderifier } from "react-mapbox-gl-spiderifier";
-import MapboxGl from "mapbox-gl";
-import MapboxglSpiderifier from "mapboxgl-spiderifier";
-import "mapboxgl-spiderifier/index.css";
+import UserMarker from "./user/Marker";
+import { MapUserPopup } from "./user/Popup";
+
 const Map = ReactMapboxGl({
   accessToken: config.token
 });
 const styles = {
-  clusterMarker: {
-    width: 50,
-    height: 50,
+  clusterMarker: count => ({
+    // < 5, 5-10, 10-20, 20+
+    width: count < 5 ? 40 : count < 10 ? 50 : count < 20 ? 60 : 80,
+    height: count < 5 ? 40 : count < 10 ? 50 : count < 20 ? 60 : 80,
     borderRadius: "50%",
-    backgroundColor: "#51D5A0",
+    backgroundColor:
+      count < 5
+        ? "#23B476"
+        : count < 10
+        ? "#FFD23F"
+        : count < 20
+        ? "#ED4068 "
+        : "#78129E",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     color: "white",
     // border: "2px solid #56C498",
-    cursor: "pointer"
-  },
+    cursor: "pointer",
+    fontSize: count < 5 ? 10 : count < 10 ? 12 : count < 20 ? 14 : 16
+  }),
   marker: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     borderRadius: "50%",
     backgroundColor: "#E0E0E0",
     display: "flex",
@@ -39,6 +47,10 @@ const styles = {
 class MapView extends React.Component {
   static propTypes = {};
 
+  state = {
+    selectedFeature: null,
+    zoom: [3]
+  };
   componentDidMount() {
     this.props.fetchAllUsers();
   }
@@ -47,53 +59,12 @@ class MapView extends React.Component {
   };
   onStyleLoad = map => {
     this.map = map;
-
-    this.spiderifier = new MapboxglSpiderifier(this.map, {
-      onClick: function(e, spiderLeg) {
-        console.log("Clicked on ", spiderLeg);
-      },
-      customPin: true,
-      animate: true,
-      animationSpeed: 200,
-      initializeLeg: this.initializeSpiderLeg,
-      circleSpiralSwitchover: Infinity,
-      circleFootSeparation: 50,
-      spiralLengthStart: 50,
-      spiralFootSeparation: 200,
-      spiralLengthFactor: 20
-    });
-    // this.spiderifier.spiderfy([-74.50, 40], features);
   };
 
-  initializeSpiderLeg = spiderLeg => {
-    const pinElem = spiderLeg.elements.pin;
-    const feature = spiderLeg.feature;
-    console.log(pinElem);
-    pinElem.innerHTML = `${feature.nickname}`;
-    for (let prop in styles.marker) {
-      pinElem.style[prop] = styles.marker[prop];
-    }
-    pinElem.style.background = `url(${feature.avatar}) white`;
-    // $(pinElem)
-    //   .on("mouseenter", function() {
-    //     popup = new mapboxgl.Popup({
-    //       closeButton: true,
-    //       closeOnClick: false,
-    //       offset: MapboxglSpiderifier.popupOffsetForSpiderLeg(spiderLeg)
-    //     });
-    //     popup.setHTML("Icon used is <b>fa-" + feature.type + "</b>").addTo(map);
-    //     spiderLeg.mapboxMarker.setPopup(popup);
-    //   })
-    //   .on("mouseleave", function() {
-    //     if (popup) {
-    //       popup.remove();
-    //     }
-    //   });
-  };
   clusterMarker = (coordinates, pointCount, getLeaves) => (
     <Marker
       coordinates={coordinates}
-      style={styles.clusterMarker}
+      style={styles.clusterMarker(pointCount)}
       onClick={this.handlerClusterClick(coordinates, pointCount, getLeaves)}
       key={coordinates.join(",")}
     >
@@ -101,55 +72,81 @@ class MapView extends React.Component {
     </Marker>
   );
 
-  handlerClusterClick = (coordinates, pointCount, getLeaves) => () => {
+  handlerClusterClick = (coordinates, pointCount, getLeaves) => e => {
     const leaves = getLeaves();
+    let equal = true;
+    const coordinates = leaves[0].props.coordinates;
+    for (let i = 1; i < leaves.length; i++) {
+      if (
+        coordinates[0] !== leaves[i].props.coordinates[0] ||
+        coordinates[1] !== leaves[i].props.coordinates[1]
+      ) {
+        equal = false;
+        break;
+      }
+    }
 
     const markers = leaves.map(
       leafFeature => leafFeature.props["data-feature"].properties
     );
-    console.log(markers, coordinates);
-    this.spiderifier.spiderfy(coordinates, markers);
+    console.log(leaves);
+    if (equal) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
 
   handleMarkerClick = feature => () => {
     console.log(feature);
+    this.setState({
+      selectedFeature: feature
+      // center: feature.geometry.coordinates,
+      // zoom: [14]
+    });
+  };
+  onDrag = () => {
+    // if (this.state.selectedFeature) {
+    //   this.setState({ selectedFeature: undefined });
+    // }
   };
   render() {
     const { data } = this.props;
-    console.log(data);
+    const { selectedFeature, zoom, center } = this.state;
     return (
       <Map
         style={config.styles.street}
-        zoom={[3]}
+        // zoom={zoom}
+        // center={center}
         onStyleLoad={this.onStyleLoad}
         onZoomStart={this.onZoomStart}
+        // onDrag={this.onDrag}
         containerStyle={{
           height: "100vh",
           width: "100vw"
         }}
       >
-        {/*<ReactMapboxGlCluster data={data} {...this.getEventHandlers()} />*/}
-        <Cluster ClusterMarkerFactory={this.clusterMarker}>
+        <Cluster
+          ClusterMarkerFactory={this.clusterMarker}
+          zoomOnClick
+          zoomOnClickPadding={40}
+        >
           {data.features.map((feature, key) => (
             <Marker
               key={feature.properties.user}
               onClick={this.handleMarkerClick(feature)}
-              style={{
-                ...styles.marker,
-                background: `url(${feature.properties.avatar}) white`
-              }}
+              offset={[40, 35]}
               data-feature={feature}
               coordinates={feature.geometry.coordinates}
             >
-              {feature.properties.nickname}
+              <UserMarker {...feature} />
             </Marker>
           ))}
         </Cluster>
+        {selectedFeature && <MapUserPopup feature={selectedFeature} />}
       </Map>
     );
   }
 }
-
 export default connect(
   state => ({
     data: usersGeoJSONSelector(state)
