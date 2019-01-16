@@ -7,7 +7,6 @@ class Main extends React.Component {
   render() {
     return (
       <React.Fragment>
-        <Header />
         <Grid
           container
           alignItems="flex-start"
@@ -17,6 +16,7 @@ class Main extends React.Component {
         >
           <MapView />
         </Grid>
+        <Header />
       </React.Fragment>
     );
   }

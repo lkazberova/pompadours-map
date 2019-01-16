@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import { fetchAllUsers, usersGeoJSONSelector } from "../../ducks/users";
 import UserMarker from "./user/Marker";
 import { MapUserPopup } from "./user/Popup";
+import { styleSelector } from "../../ducks/map";
 
 const Map = ReactMapboxGl({
   accessToken: config.token
@@ -110,11 +111,11 @@ class MapView extends React.Component {
     // }
   };
   render() {
-    const { data } = this.props;
+    const { data, style } = this.props;
     const { selectedFeature, zoom, center } = this.state;
     return (
       <Map
-        style={config.styles.street}
+        style={style}
         // zoom={zoom}
         // center={center}
         onStyleLoad={this.onStyleLoad}
@@ -149,7 +150,8 @@ class MapView extends React.Component {
 }
 export default connect(
   state => ({
-    data: usersGeoJSONSelector(state)
+    data: usersGeoJSONSelector(state),
+    style: styleSelector(state)
   }),
   { fetchAllUsers }
 )(MapView);
