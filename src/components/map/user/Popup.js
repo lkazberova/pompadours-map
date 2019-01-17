@@ -22,9 +22,7 @@ const styles = theme => ({
   card: {
     display: "flex"
   },
-  media: {
-    height: 140
-  },
+
   details: {
     display: "flex",
     flexDirection: "column"
@@ -82,7 +80,7 @@ export const MapUserPopup = withStyles(styles)(
           <CardMedia className={classes.cover} image={avatar} />
           <div className={classes.details}>
             <CardContent className={classes.content}>
-              <Typography component="h5" variant="h5">
+              <Typography component="h6" variant="h6">
                 {nickname}
               </Typography>
               <Typography variant="subtitle1" color="textSecondary">

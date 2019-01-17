@@ -6,7 +6,7 @@ import { connect } from "react-redux";
 import { fetchAllUsers, usersGeoJSONSelector } from "../../ducks/users";
 import UserMarker from "./user/Marker";
 import { MapUserPopup } from "./user/Popup";
-import { styleSelector } from "../../ducks/map";
+import { centerSelector, setCenter, styleSelector } from "../../ducks/map";
 
 const Map = ReactMapboxGl({
   accessToken: config.token
@@ -50,7 +50,7 @@ class MapView extends React.Component {
 
   state = {
     selectedFeature: null,
-    zoom: [3]
+    zoom: [0]
   };
   componentDidMount() {
     this.props.fetchAllUsers();
@@ -99,9 +99,9 @@ class MapView extends React.Component {
     console.log(feature);
     this.setState({
       selectedFeature: feature
-      // center: feature.geometry.coordinates,
       // zoom: [14]
     });
+    this.props.setCenter(feature.geometry.coordinates);
   };
   onDrag = () => {
     if (this.state.selectedFeature) {
@@ -109,13 +109,13 @@ class MapView extends React.Component {
     }
   };
   render() {
-    const { data, style } = this.props;
-    const { selectedFeature, zoom, center } = this.state;
+    const { data, style, center } = this.props;
+    const { selectedFeature, zoom } = this.state;
     return (
       <Map
         style={style}
-        // zoom={zoom}
-        // center={center}
+        zoom={zoom}
+        center={center}
         onStyleLoad={this.onStyleLoad}
         onClick={this.onDrag}
         onZoomStart={this.onZoomStart}
@@ -128,7 +128,7 @@ class MapView extends React.Component {
         <Cluster
           ClusterMarkerFactory={this.clusterMarker}
           zoomOnClick
-          zoomOnClickPadding={100}
+          zoomOnClickPadding={60}
         >
           {data.features.map((feature, key) => (
             <Marker
@@ -150,7 +150,8 @@ class MapView extends React.Component {
 export default connect(
   state => ({
     data: usersGeoJSONSelector(state),
-    style: styleSelector(state)
+    style: styleSelector(state),
+    center: centerSelector(state)
   }),
-  { fetchAllUsers }
+  { fetchAllUsers, setCenter }
 )(MapView);

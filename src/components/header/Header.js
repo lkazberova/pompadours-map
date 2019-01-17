@@ -19,6 +19,8 @@ import OutlinedInput from "@material-ui/core/OutlinedInput/OutlinedInput";
 import FormControl from "@material-ui/core/FormControl/FormControl";
 import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 import Input from "@material-ui/core/Input/Input";
+import Hidden from "@material-ui/core/Hidden/Hidden";
+import AutosuggestInput from "../search/AutoSuggest";
 const TopContainer = styled.div`
   position: absolute;
   left: 0;
@@ -30,9 +32,6 @@ const TopContainer = styled.div`
   // padding: 0.5em 1.25em 0 1.25em;
 `;
 const styles = theme => ({
-  grow: {
-    flexGrow: 1
-  },
   menuButton: {
     marginLeft: -12,
     marginRight: 20
@@ -47,6 +46,8 @@ const styles = theme => ({
     paddingLeft: theme.spacing.unit * 2
   },
   search: {
+    flexGrow: 1,
+
     position: "relative",
     borderRadius: theme.shape.borderRadius,
     backgroundColor: fade(theme.palette.common.white, 0.15),
@@ -96,19 +97,28 @@ class Header extends React.Component {
       <TopContainer>
         <AppBar position="static">
           <Toolbar>
-            <Typography variant="h6" color="inherit" className={classes.grow}>
-              ODesk nomads
-            </Typography>
+            <Hidden xsDown>
+              <Typography variant="h6" color="inherit">
+                ODesk nomads
+              </Typography>
+            </Hidden>
+
             <div className={classes.search}>
               <div className={classes.searchIcon}>
                 <SearchIcon />
               </div>
-              <InputBase
-                placeholder="Search…"
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput
-                }}
+
+              <AutosuggestInput
+                renderInput={inputProps => (
+                  <InputBase
+                    placeholder="Search…"
+                    inputProps={inputProps}
+                    classes={{
+                      root: classes.inputRoot,
+                      input: classes.inputInput
+                    }}
+                  />
+                )}
               />
             </div>
             <Select

@@ -16,7 +16,7 @@ export const SET_STYLE = `${prefix}/SET_STYLE`;
  * Reducer
  * */
 const initialState = {
-  center: false,
+  center: [0, 0],
   style: config.styles.street
 };
 export default function reducer(state = initialState, action) {
@@ -25,6 +25,9 @@ export default function reducer(state = initialState, action) {
   switch (type) {
     case SET_STYLE:
       return { ...state, style: payload };
+    case SET_CENTER:
+      return { ...state, center: payload };
+
     default:
       return state;
   }
@@ -37,10 +40,15 @@ export const styleSelector = createSelector(
   stateSelector,
   state => state.style
 );
+export const centerSelector = createSelector(
+  stateSelector,
+  state => state.center
+);
 /**
  * Action Creators
  * */
 export const setStyle = style => ({ type: SET_STYLE, payload: style });
+export const setCenter = style => ({ type: SET_CENTER, payload: style });
 /**
  * Sagas
  **/
