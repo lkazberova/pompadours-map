@@ -1,4 +1,4 @@
-import { all, put, takeEvery } from "redux-saga/effects";
+import { all, put, takeEvery, select } from "redux-saga/effects";
 import { createAsyncAction } from "../helpers/redux";
 import { createSelector } from "reselect";
 import cities from "../mockups/cities";
@@ -12,13 +12,14 @@ export const moduleName = "users";
 const prefix = `${moduleName}`;
 
 export const FETCH_ALL = createAsyncAction(`${prefix}/FETCH_ALL`);
-export const FILTER = createSelector(`${prefix}/FILTER`);
+export const GET_SUGGESTIONS = createAsyncAction(`${prefix}/GET_SUGGESTIONS`);
 /**
  * Reducer
  * */
 const initialState = {
   loading: false,
-  items: []
+  items: [],
+  suggestions: []
 };
 export default function reducer(state = initialState, action) {
   const { type, payload } = action;
@@ -28,7 +29,8 @@ export default function reducer(state = initialState, action) {
       return { ...state, loading: true };
     case FETCH_ALL.SUCCESS:
       return { ...state, loading: false, items: action.payload };
-
+    case GET_SUGGESTIONS.SUCCESS:
+      return { ...state, suggestions: payload };
     default:
       return state;
   }
@@ -37,6 +39,14 @@ export default function reducer(state = initialState, action) {
  * Selectors
  * */
 export const stateSelector = state => state[moduleName];
+export const usersSelector = createSelector(
+  stateSelector,
+  state => state.items
+);
+export const usersSuggestionsSelector = createSelector(
+  stateSelector,
+  state => state.suggestions
+);
 export const usersGeoJSONSelector = createSelector(
   stateSelector,
   state =>
@@ -85,6 +95,10 @@ export const usersGeoJSONSelector = createSelector(
 export const fetchAllUsers = () => ({
   type: FETCH_ALL.REQUEST
 });
+export const getUsersSuggestions = value => ({
+  type: GET_SUGGESTIONS.REQUEST,
+  payload: value
+});
 /**
  * Sagas
  **/
@@ -93,7 +107,28 @@ function* fetchRequestSaga() {
   const items = cities;
   yield put({ type: FETCH_ALL.SUCCESS, payload: items });
 }
+function* getUsersSuggestionsSaga({ payload }) {
+  const items = yield select(usersSelector);
+
+  const escapedValue = payload.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  let result = [];
+  if (escapedValue !== "") {
+    const regex = new RegExp(escapedValue, "i");
+
+    result = items.filter(
+      item =>
+        regex.test(item.nickname) ||
+        regex.test(item.city) ||
+        regex.test(item.country)
+    );
+  }
+  yield put({ type: GET_SUGGESTIONS.SUCCESS, payload: result });
+}
 
 export function* saga() {
-  const result = yield all([takeEvery(FETCH_ALL.REQUEST, fetchRequestSaga)]);
+  const result = yield all([
+    takeEvery(FETCH_ALL.REQUEST, fetchRequestSaga),
+    takeEvery(GET_SUGGESTIONS.REQUEST, getUsersSuggestionsSaga)
+  ]);
 }

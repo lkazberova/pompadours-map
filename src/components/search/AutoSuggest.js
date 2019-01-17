@@ -13,198 +13,11 @@ import ListItemText from "@material-ui/core/ListItemText/ListItemText";
 import ListItemIcon from "@material-ui/core/ListItemIcon/ListItemIcon";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar/ListItemAvatar";
 import Avatar from "@material-ui/core/Avatar/Avatar";
-const items = [
-  {
-    title: "1970s",
-    items: [
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      },
-      {
-        name: "C",
-        year: 1972
-      }
-    ]
-  },
-  {
-    title: "1980s",
-    items: [
-      {
-        name: "C++",
-        year: 1983
-      },
-      {
-        name: "Perl",
-        year: 1987
-      }
-    ]
-  },
-  {
-    title: "1990s",
-    items: [
-      {
-        name: "Haskell",
-        year: 1990
-      },
-      {
-        name: "Python",
-        year: 1991
-      },
-      {
-        name: "Java",
-        year: 1995
-      },
-      {
-        name: "Javascript",
-        year: 1995
-      },
-      {
-        name: "PHP",
-        year: 1995
-      },
-      {
-        name: "Ruby",
-        year: 1995
-      }
-    ]
-  },
-  {
-    title: "2000s",
-    items: [
-      {
-        name: "C#",
-        year: 2000
-      },
-      {
-        name: "Scala",
-        year: 2003
-      },
-      {
-        name: "Clojure",
-        year: 2007
-      },
-      {
-        name: "Go",
-        year: 2009
-      }
-    ]
-  },
-  {
-    title: "2010s",
-    items: [
-      {
-        name: "Elm",
-        year: 2012
-      }
-    ]
-  },
-  {
-    title: "Users",
-    type: "users",
-    items: [
-      {
-        _id: {
-          $oid: "5743185f61d2b4ead7dc106f"
-        },
-        user: "U04G68VQG",
-        city: "Saint Petersburg",
-        country: "Russia",
-        lat: 59.93863,
-        lng: 30.31413,
-        nickname: "cgrecgory.b",
-        avatar:
-          "https://avatars.slack-edge.com/2018-01-14/298637402962_73cd1423ee6a6ccb36c7_72.jpg"
-      },
-      {
-        _id: {
-          $oid: "57a96eb84cef947748516651"
-        },
-        user: "U1VUZ83GR",
-        city: "Ust-Kamenogorsk",
-        country: "Kazakhstan",
-        lat: 49.97143,
-        lng: 82.60586,
-        nickname: "cocma_uk",
-        avatar:
-          "https://avatars.slack-edge.com/2016-10-14/91133093317_267e1194102dc1c4a454_72.jpg"
-      },
-      {
-        _id: {
-          $oid: "581b9c2e17a485a5fc6e34a0"
-        },
-        user: "U2YH7DYF8",
-        city: "St Petersburg",
-        country: "Russia",
-        lat: 59.93863,
-        lng: 30.31413,
-        nickname: "cwiclbit",
-        avatar:
-          "https://avatars.slack-edge.com/2018-04-04/340686516100_ac6062f70cc3cd9f350c_72.jpg"
-      }
-    ]
-  }
-];
-
-// https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions#Using_Special_Characters
-function escapeRegexCharacters(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function getSuggestions(value) {
-  const escapedValue = escapeRegexCharacters(value.trim());
-
-  if (escapedValue === "") {
-    return [];
-  }
-
-  const regex = new RegExp(escapedValue, "i");
-
-  return items
-    .map(section => {
-      return {
-        title: section.title,
-        items: section.items.filter(item =>
-          regex.test(getSuggestionValue(item))
-        )
-      };
-    })
-    .filter(section => section.items.length > 0);
-}
+import * as PropTypes from "prop-types";
+import debounce from "lodash.debounce";
 
 function getSuggestionValue(suggestion) {
+  console.log(suggestion);
   return suggestion.name || suggestion.nickname;
 }
 
@@ -212,6 +25,12 @@ function renderSuggestion(suggestion, { query, isHighlighted }) {
   const matches = match(getSuggestionValue(suggestion), query);
   const parts = parse(getSuggestionValue(suggestion), matches);
 
+  let matchesSecondary, partsSecondary, secondary;
+  if (suggestion.city) {
+    secondary = `${suggestion.country}, ${suggestion.city}`;
+    matchesSecondary = match(secondary, query);
+    partsSecondary = parse(secondary, matchesSecondary);
+  }
   return (
     <ListItem
       selected={isHighlighted}
@@ -264,9 +83,27 @@ function renderSuggestion(suggestion, { query, isHighlighted }) {
           </React.Fragment>
         }
         secondary={
-          suggestion.city
-            ? `${suggestion.country}, ${suggestion.city}`
-            : undefined
+          suggestion.city ? (
+            <React.Fragment>
+              {partsSecondary.map((part, index) => {
+                return !part.highlight ? (
+                  <span
+                    key={index}
+                    style={{
+                      // fontFamily: "Gotham Light",
+                      opacity: 0.7
+                    }}
+                  >
+                    {part.text}
+                  </span>
+                ) : (
+                  <strong key={index}>{part.text}</strong>
+                );
+              })}
+            </React.Fragment>
+          ) : (
+            undefined
+          )
         }
       />
     </ListItem>
@@ -331,6 +168,11 @@ const defaultStyles = {
   }
 };
 class AutoSuggest extends React.Component {
+  static propTypes = {
+    renderInput: PropTypes.func,
+    onFetchSuggestions: PropTypes.func,
+    onSuggestionSelected: PropTypes.func.isRequired
+  };
   constructor() {
     super();
 
@@ -338,33 +180,42 @@ class AutoSuggest extends React.Component {
       value: "",
       suggestions: []
     };
+    this.debouncedLoadSuggestions = debounce(this.loadSuggestions, 200);
   }
+  loadSuggestions = value => {
+    const inputValue = value.trim().toLowerCase();
+    const inputLength = inputValue.length;
 
-  onChange = (event, { newValue, method }) => {
+    return inputLength === 0 ? [] : this.props.onFetchSuggestions(value);
+  };
+  handleSuggestionsFetchRequested = ({ value }) => {
+    this.debouncedLoadSuggestions(value);
+  };
+  handleChange = (e, { newValue }) => {
     this.setState({
       value: newValue
     });
   };
 
-  onSuggestionsFetchRequested = ({ value }) => {
-    this.setState({
-      suggestions: getSuggestions(value)
-    });
+  handleSuggestionSelected = (
+    event,
+    { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }
+  ) => {
+    this.props.onSuggestionSelected(suggestion);
   };
-
-  onSuggestionsClearRequested = () => {
+  handleSuggestionsClearRequested = () => {
     this.setState({
       suggestions: []
     });
   };
 
   render() {
-    const { value, suggestions } = this.state;
-    const { classes } = this.props;
+    const { value } = this.state;
+    const { classes, suggestions } = this.props;
     const inputProps = {
-      placeholder: "Type 'c'",
+      placeholder: "Type country, city or username",
       value,
-      onChange: this.onChange
+      onChange: this.handleChange
     };
 
     return (
@@ -377,8 +228,9 @@ class AutoSuggest extends React.Component {
         }}
         multiSection={true}
         suggestions={suggestions}
-        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+        onSuggestionsFetchRequested={this.handleSuggestionsFetchRequested}
+        onSuggestionSelected={this.handleSuggestionSelected}
+        onSuggestionsClearRequested={this.handleSuggestionsClearRequested}
         getSuggestionValue={getSuggestionValue}
         renderSuggestion={renderSuggestion}
         renderSectionTitle={renderSectionTitle}

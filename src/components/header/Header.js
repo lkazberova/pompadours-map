@@ -21,6 +21,7 @@ import InputLabel from "@material-ui/core/InputLabel/InputLabel";
 import Input from "@material-ui/core/Input/Input";
 import Hidden from "@material-ui/core/Hidden/Hidden";
 import AutosuggestInput from "../search/AutoSuggest";
+import SearchAutoSuggest from "../search/SearchAutoSuggest";
 const TopContainer = styled.div`
   position: absolute;
   left: 0;
@@ -108,10 +109,10 @@ class Header extends React.Component {
                 <SearchIcon />
               </div>
 
-              <AutosuggestInput
+              <SearchAutoSuggest
                 renderInput={inputProps => (
                   <InputBase
-                    placeholder="Search…"
+                    placeholder="Search …"
                     inputProps={inputProps}
                     classes={{
                       root: classes.inputRoot,
