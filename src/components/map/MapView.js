@@ -117,6 +117,7 @@ class MapView extends React.Component {
         // zoom={zoom}
         // center={center}
         onStyleLoad={this.onStyleLoad}
+        onClick={this.onDrag}
         onZoomStart={this.onZoomStart}
         onDrag={this.onDrag}
         containerStyle={{
