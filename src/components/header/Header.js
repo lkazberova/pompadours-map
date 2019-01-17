@@ -20,6 +20,7 @@ const TopContainer = styled.div`
   width: 100%;
   flex-grow: 1;
   background-color: white;
+  z-index: 100;
   // padding: 0.5em 1.25em 0 1.25em;
 `;
 const styles = {

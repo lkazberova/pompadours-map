@@ -3,6 +3,13 @@ import { createAsyncAction } from "../helpers/redux";
 import { put, takeEvery } from "redux-saga/effects";
 import { createSelector } from "reselect";
 import cities from "../mockups/cities";
+import sortBy from "lodash.sortby";
+import { randomPosition } from "@turf/random";
+import { point as turfPoint } from "@turf/helpers";
+import buffer from "@turf/buffer";
+import bbox from "@turf/bbox";
+import circle from "@turf/circle";
+import { getPositionInCircle } from "../helpers/map";
 /**
  * Constants
  * */
@@ -37,15 +44,35 @@ export const stateSelector = state => state[moduleName];
 export const usersGeoJSONSelector = createSelector(
   stateSelector,
   state =>
-    state.items.reduce(
-      (result, value, key) => {
+    sortBy(state.items, ["lat", "lng"]).reduce(
+      (result, value, index, array) => {
         const { city, user, lat, lng, nickname, avatar } = value;
-        result.features[key] = {
+        console.log(lat, lng);
+        let randomPoint,
+          circleIndex = 0;
+
+        if (
+          index > 0 &&
+          array[index - 1].lat === lat &&
+          array[index - 1].lng === lng
+        ) {
+          circleIndex = result.features[index - 1].properties.circleIndex + 1;
+          randomPoint = getPositionInCircle([lng, lat], 1, circleIndex);
+          console.log("r", [lng, lat], randomPoint);
+        }
+        result.features[index] = {
           type: "Feature",
-          properties: { city, user, nickname, avatar },
+          properties: {
+            city,
+            user,
+            nickname,
+            avatar,
+            ...value,
+            circleIndex
+          },
           geometry: {
             type: "Point",
-            coordinates: [lng, lat]
+            coordinates: randomPoint ? randomPoint : [lng, lat]
           }
         };
         return result;

@@ -55,9 +55,7 @@ class MapView extends React.Component {
   componentDidMount() {
     this.props.fetchAllUsers();
   }
-  onZoomStart = () => {
-    this.spiderifier && this.spiderifier.unspiderfy();
-  };
+  onZoomStart = () => {};
   onStyleLoad = map => {
     this.map = map;
   };
@@ -106,9 +104,9 @@ class MapView extends React.Component {
     });
   };
   onDrag = () => {
-    // if (this.state.selectedFeature) {
-    //   this.setState({ selectedFeature: undefined });
-    // }
+    if (this.state.selectedFeature) {
+      this.setState({ selectedFeature: undefined });
+    }
   };
   render() {
     const { data, style } = this.props;
@@ -120,7 +118,7 @@ class MapView extends React.Component {
         // center={center}
         onStyleLoad={this.onStyleLoad}
         onZoomStart={this.onZoomStart}
-        // onDrag={this.onDrag}
+        onDrag={this.onDrag}
         containerStyle={{
           height: "100vh",
           width: "100vw"
@@ -129,13 +127,13 @@ class MapView extends React.Component {
         <Cluster
           ClusterMarkerFactory={this.clusterMarker}
           zoomOnClick
-          zoomOnClickPadding={40}
+          zoomOnClickPadding={100}
         >
           {data.features.map((feature, key) => (
             <Marker
               key={feature.properties.user}
               onClick={this.handleMarkerClick(feature)}
-              offset={[40, 35]}
+              // offset={[40, 35]}
               data-feature={feature}
               coordinates={feature.geometry.coordinates}
             >

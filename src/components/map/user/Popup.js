@@ -19,7 +19,17 @@ export const MapUserPopup = ({
 }) => {
   console.log(coordinates);
   return (
-    <Popup key={properties.user} coordinates={coordinates}>
+    <Popup
+      key={properties.user}
+      coordinates={coordinates}
+      offset={{
+        // "bottom-left": [12, -38],
+        bottom: [0, -38],
+        right: [-80, 0],
+        left: [50, -20]
+        // "bottom-right": [-12, -108]
+      }}
+    >
       <StyledPopup>
         <div>{properties.nickname}</div>
         <div>{properties.country}</div>
