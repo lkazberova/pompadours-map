@@ -57,16 +57,16 @@ const launchServer = async function() {
   });
   // Redirect all http requests to https if in production
   /* eslint-disable consistent-return */
-  if (process.env.NODE_ENV === "production") {
-    server.ext("onRequest", (request, reply) => {
-      if (request.headers["x-forwarded-proto"] !== "https") {
-        return reply("Forwarding to secure route").redirect(
-          `https://${request.headers.host}${request.path}${request.url.search}`
-        );
-      }
-      reply.continue();
-    });
-  }
+  // if (process.env.NODE_ENV === "production") {
+  //   server.ext("onRequest", (request, reply) => {
+  //     if (request.headers["x-forwarded-proto"] !== "https") {
+  //       return reply("Forwarding to secure route").redirect(
+  //         `https://${request.headers.host}${request.path}${request.url.search}`
+  //       );
+  //     }
+  //     reply.continue();
+  //   });
+  // }
   // // Setting index.html as the default
   // server.ext("onPreResponse", (request, reply) => {
   //   const response = request.response;
