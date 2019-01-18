@@ -14,31 +14,7 @@ import {
   getUsersSuggestions,
   usersSuggestionsSelector
 } from "../../ducks/users";
-
-function escapeRegexCharacters(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-// function getSuggestions(value) {
-//   const escapedValue = escapeRegexCharacters(value.trim());
-//
-//   if (escapedValue === "") {
-//     return [];
-//   }
-//
-//   const regex = new RegExp(escapedValue, "i");
-//
-//   return items
-//     .map(section => {
-//       return {
-//         title: section.title,
-//         items: section.items.filter(item =>
-//           regex.test(getSuggestionValue(item))
-//         )
-//       };
-//     })
-//     .filter(section => section.items.length > 0);
-// }
+import { moveToPlaceId, moveToUser } from "../../ducks/map";
 
 class SearchAutoSuggest extends React.Component {
   static propTypes = {};
@@ -48,8 +24,11 @@ class SearchAutoSuggest extends React.Component {
     return (
       <AutoSuggest
         suggestions={[
-          { title: "Places", items: geoSuggestions },
-          { title: "Users", items: usersSuggestions }
+          { title: `Places (${geoSuggestions.length})`, items: geoSuggestions },
+          {
+            title: `Users (${usersSuggestions.length})`,
+            items: usersSuggestions
+          }
         ]}
         renderInput={this.props.renderInput}
         onFetchSuggestions={this.handleFetchSuggestions}
@@ -61,15 +40,17 @@ class SearchAutoSuggest extends React.Component {
   handleFetchSuggestions = value => {
     const { getGeoSuggestions, inputSuggest, getUsersSuggestions } = this.props;
     if (inputSuggest !== value) {
-      console.log(`fetch geosuggestions for ${value}`);
+      // console.log(`fetch geosuggestions for ${value}`);
       getGeoSuggestions(value);
       getUsersSuggestions(value);
     }
   };
-  handleSuggestionSelected = address => {
-    const { lang, getPlaceDetails, goToPage } = this.props;
+  handleSuggestionSelected = value => {
+    const { moveToPlaceId, moveToUser } = this.props;
     // getPlaceDetails(address, lang);
-    console.log(address);
+    if (value.placeid) moveToPlaceId(value.placeid);
+    else moveToUser(value);
+    // console.log(value);
     // goToPage(routes.addressPathWith(address.text));
   };
 }
@@ -88,6 +69,6 @@ export default withScriptLoader(
 )(
   connect(
     selector,
-    { getGeoSuggestions, getUsersSuggestions }
+    { getGeoSuggestions, getUsersSuggestions, moveToPlaceId, moveToUser }
   )(SearchAutoSuggest)
 );

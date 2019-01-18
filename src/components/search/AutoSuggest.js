@@ -17,7 +17,7 @@ import * as PropTypes from "prop-types";
 import debounce from "lodash.debounce";
 
 function getSuggestionValue(suggestion) {
-  console.log(suggestion);
+  // console.log(suggestion);
   return suggestion.name || suggestion.nickname;
 }
 
@@ -197,11 +197,8 @@ class AutoSuggest extends React.Component {
     });
   };
 
-  handleSuggestionSelected = (
-    event,
-    { suggestion, suggestionValue, suggestionIndex, sectionIndex, method }
-  ) => {
-    this.props.onSuggestionSelected(suggestion);
+  handleSuggestionSelected = (event, { suggestion, ...option }) => {
+    this.props.onSuggestionSelected(suggestion, option);
   };
   handleSuggestionsClearRequested = () => {
     this.setState({

@@ -63,7 +63,7 @@ export const MapUserPopup = withStyles(styles)(
     },
     classes
   }) => {
-    console.log(coordinates);
+    // console.log(coordinates);
     return (
       <Popup
         key={user}

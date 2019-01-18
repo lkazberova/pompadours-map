@@ -88,7 +88,12 @@ export const usersGeoJSONSelector = createSelector(
       { type: "FeatureCollection", features: [] }
     )
 );
-
+export const getUserFeatureSelector = createSelector(
+  (state, id) => id,
+  usersGeoJSONSelector,
+  (id, users) =>
+    users.features.filter(feature => feature.properties.user === id)[0]
+);
 /**
  * Action Creators
  * */

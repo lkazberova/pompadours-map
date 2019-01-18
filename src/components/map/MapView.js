@@ -6,7 +6,16 @@ import { connect } from "react-redux";
 import { fetchAllUsers, usersGeoJSONSelector } from "../../ducks/users";
 import UserMarker from "./user/Marker";
 import { MapUserPopup } from "./user/Popup";
-import { centerSelector, setCenter, styleSelector } from "../../ducks/map";
+import {
+  bboxSelector,
+  centerSelector,
+  popupSelector,
+  setCenter,
+  setPopup,
+  styleSelector,
+  zoomSelector
+} from "../../ducks/map";
+import { createStructuredSelector } from "reselect";
 
 const Map = ReactMapboxGl({
   accessToken: config.token
@@ -47,11 +56,6 @@ const styles = {
 
 class MapView extends React.Component {
   static propTypes = {};
-
-  state = {
-    selectedFeature: null,
-    zoom: [0]
-  };
   componentDidMount() {
     this.props.fetchAllUsers();
   }
@@ -64,58 +68,28 @@ class MapView extends React.Component {
     <Marker
       coordinates={coordinates}
       style={styles.clusterMarker(pointCount)}
-      onClick={this.handlerClusterClick(coordinates, pointCount, getLeaves)}
       key={coordinates.join(",")}
     >
       {pointCount}
     </Marker>
   );
-
-  handlerClusterClick = (coordinates, pointCount, getLeaves) => e => {
-    const leaves = getLeaves();
-    let equal = true;
-    const coordinates = leaves[0].props.coordinates;
-    for (let i = 1; i < leaves.length; i++) {
-      if (
-        coordinates[0] !== leaves[i].props.coordinates[0] ||
-        coordinates[1] !== leaves[i].props.coordinates[1]
-      ) {
-        equal = false;
-        break;
-      }
-    }
-
-    const markers = leaves.map(
-      leafFeature => leafFeature.props["data-feature"].properties
-    );
-    console.log(leaves);
-    if (equal) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
   handleMarkerClick = feature => () => {
-    console.log(feature);
-    this.setState({
-      selectedFeature: feature
-      // zoom: [14]
-    });
     this.props.setCenter(feature.geometry.coordinates);
+    this.props.setPopup(feature);
   };
   onDrag = () => {
-    if (this.state.selectedFeature) {
-      this.setState({ selectedFeature: undefined });
+    if (this.props.popup) {
+      this.props.setPopup(undefined);
     }
   };
   render() {
-    const { data, style, center } = this.props;
-    const { selectedFeature, zoom } = this.state;
+    const { data, style, center, zoom, bbox, popup } = this.props;
     return (
       <Map
         style={style}
         zoom={zoom}
         center={center}
+        fitBounds={bbox}
         onStyleLoad={this.onStyleLoad}
         onClick={this.onDrag}
         onZoomStart={this.onZoomStart}
@@ -142,16 +116,21 @@ class MapView extends React.Component {
             </Marker>
           ))}
         </Cluster>
-        {selectedFeature && <MapUserPopup feature={selectedFeature} />}
+        {popup && <MapUserPopup feature={popup} />}
       </Map>
     );
   }
 }
+
+const selector = createStructuredSelector({
+  data: usersGeoJSONSelector,
+  style: styleSelector,
+  center: centerSelector,
+  zoom: zoomSelector,
+  bbox: bboxSelector,
+  popup: popupSelector
+});
 export default connect(
-  state => ({
-    data: usersGeoJSONSelector(state),
-    style: styleSelector(state),
-    center: centerSelector(state)
-  }),
-  { fetchAllUsers, setCenter }
+  selector,
+  { fetchAllUsers, setCenter, setPopup }
 )(MapView);
