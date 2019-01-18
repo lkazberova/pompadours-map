@@ -1,9 +1,9 @@
-import { all, put, takeEvery, select } from "redux-saga/effects";
+import { all, call, put, select, takeEvery } from "redux-saga/effects";
 import { createAsyncAction } from "../helpers/redux";
 import { createSelector } from "reselect";
-import cities from "../mockups/cities";
 import sortBy from "lodash.sortby";
 import { getPositionInCircle } from "../helpers/map";
+import axios from "axios";
 
 /**
  * Constants
@@ -109,8 +109,13 @@ export const getUsersSuggestions = value => ({
  **/
 
 function* fetchRequestSaga() {
-  const items = cities;
-  yield put({ type: FETCH_ALL.SUCCESS, payload: items });
+  try {
+    const { data } = yield call(axios.get, "/api/users");
+
+    yield put({ type: FETCH_ALL.SUCCESS, payload: data });
+  } catch (e) {
+    console.log(e);
+  }
 }
 function* getUsersSuggestionsSaga({ payload }) {
   const items = yield select(usersSelector);

@@ -4,6 +4,11 @@ import config from "../components/map/config";
 import { getGooglePlaceDetails } from "./geocode";
 import { getUserFeatureSelector } from "./users";
 
+if (!config.googlePlacesToken)
+  console.error("Please define REACT_APP_GOOGLE_PLACES_TOKEN in .env file");
+if (!config.token)
+  console.error("Please define REACT_APP_MAPBOX_TOKEN in .env file");
+
 /**
  * Constants
  * */
