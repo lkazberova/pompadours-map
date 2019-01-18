@@ -1,6 +1,10 @@
 const Hapi = require("hapi");
 const Boom = require("boom");
-require("dotenv").config();
+const Path = require("path");
+const Inert = require("inert");
+
+if (process.env.NODE_ENV !== "production") require("dotenv").config();
+console.log(Path.join(__dirname, "../build"));
 const launchServer = async function() {
   const dbOpts = {
     url: process.env.MONGO_DB_URL,
@@ -16,9 +20,21 @@ const launchServer = async function() {
     port: +process.env.PORT
   });
 
+  await server.register(Inert);
   await server.register({
     plugin: require("hapi-mongodb"),
     options: dbOpts
+  });
+  server.route({
+    method: "GET",
+    path: "/{path*}",
+    handler: {
+      directory: {
+        path: Path.join(__dirname, "../build"),
+        listing: false,
+        index: true
+      }
+    }
   });
 
   server.route({
@@ -39,6 +55,35 @@ const launchServer = async function() {
       }
     }
   });
+  // Redirect all http requests to https if in production
+  /* eslint-disable consistent-return */
+  if (process.env.NODE_ENV === "production") {
+    server.ext("onRequest", (request, reply) => {
+      if (request.headers["x-forwarded-proto"] !== "https") {
+        return reply("Forwarding to secure route").redirect(
+          `https://${request.headers.host}${request.path}${request.url.search}`
+        );
+      }
+      reply.continue();
+    });
+  }
+  // // Setting index.html as the default
+  // server.ext("onPreResponse", (request, reply) => {
+  //   const response = request.response;
+  //
+  //   if (!response.isBoom) {
+  //     return reply.continue();
+  //   }
+  //
+  //   // else an error has occurred
+  //   const error = response;
+  //
+  //   // if the error is 'Object not found', call index.html
+  //   if (error.output.statusCode === 404) {
+  //     return reply.file("index.html");
+  //   }
+  // });
+  /* eslint-enable consistent-return */
 
   await server.start();
   console.log(`Server started at ${server.info.uri}`);
