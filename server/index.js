@@ -4,7 +4,7 @@ const Path = require("path");
 const Inert = require("inert");
 
 if (process.env.NODE_ENV !== "production") require("dotenv").config();
-console.log(Path.join(__dirname, "../build"));
+
 const launchServer = async function() {
   const dbOpts = {
     url: process.env.MONGO_DB_URL,
@@ -16,7 +16,7 @@ const launchServer = async function() {
   };
 
   const server = Hapi.server({
-    host: "0.0.0.0",
+    host: "0.0.0.0" || process.env.HOST,
     port: +process.env.PORT
   });
 
